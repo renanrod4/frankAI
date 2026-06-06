@@ -1,0 +1,1 @@
+# Esse script é o "cerebro"
