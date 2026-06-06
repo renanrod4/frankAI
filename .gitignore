@@ -1,3 +1,4 @@
 bin/
 whisper-models/
 voice/*.onnx
+.venv/
