@@ -1,0 +1,1 @@
+# Esse script é o ponto de entrada para o módulo 'core'. Ele importa as funções e classes necessárias para que o módulo funcione corretamente.
