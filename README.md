@@ -43,7 +43,7 @@ git lfs install
 Com o Git LFS devidamente ativo no sistema, clone o repositório. O processo de download pode demorar um pouco mais do que o normal devido ao tamanho dos arquivos binários.
 
 ```bash
-git clone [https://github.com/renanrod4/frankAI.git](https://github.com/renanrod4/frankAI.git)
+git clone https://github.com/renanrod4/frankAI.git
 cd frankAI
 ```
 
