@@ -38,7 +38,6 @@ class KeyboardListener:
         raise RuntimeError("Nenhum teclado físico compatível foi encontrado.")
 
     async def monitor_hotkey(self):
-        print("Escuta de hardware ativa. Mantenha pressionado Super + F para falar...")
         
         async for event in self.device.async_read_loop():
             if event.type == ecodes.EV_KEY:

@@ -1,17 +1,25 @@
 import asyncio
 from core.listener import KeyboardListener
-# from core.recorder import AudioRecorder
+from core.recorder import AudioRecorder
 # from core.transcriber import WhisperTranscriber
 # from core.brain import OllamaBrain
 # from core.speaker import PiperSpeaker
 
+recorder = AudioRecorder()
 
 async def iniciar_gravacao():
-    print("[Main] Evento recebido: Iniciando gravação do microfone...")
-
+    print("[Main] Gatilho acionado. Gravando... (Fale agora)")
+    recorder.start_recording()
 
 async def parar_gravacao():
-    print("[Main] Evento recebido: Parando gravação. Enviando para processamento...")
+    print("[Main] Gatilho liberado. Interrompendo gravação...")
+    caminho_arquivo = recorder.stop_recording()
+    
+    if caminho_arquivo:
+        print(f"[Main] Áudio salvo com sucesso em: {caminho_arquivo}")
+        # O próximo passo será enviar este arquivo para core/transcriber.py
+    else:
+        print("[Main] Erro: Nenhum dado de áudio foi capturado.")
 
 
 async def main():
