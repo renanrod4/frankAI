@@ -1,13 +1,14 @@
 # Esse script é responsável por escutar o teclado, detectando o atalho Super + F para iniciar a gravação de áudio
 
 import asyncio
+import inspect
 from evdev import InputDevice, list_devices, ecodes
 
 class KeyboardListener:
     def __init__(self, on_press_callback, on_release_callback):
         """
-        Gerencia a escuta do teclado em nível de hardware.
-        Recebe duas funções (callbacks) que serão executadas nos eventos do atalho.
+        Gerencia a escuta do teclado
+        Recebe dois callbacks que serão executadas nos eventos do atalho.
         """
         self.device = self._find_keyboard()
         self.meta_pressed = False
@@ -42,7 +43,7 @@ class KeyboardListener:
         async for event in self.device.async_read_loop():
             if event.type == ecodes.EV_KEY:
                 
-                # Gerenciamento da tecla Super (Meta/Windows)
+                # Gerenciamento da tecla Super (Meta ou Windows)
                 if event.code in (ecodes.KEY_LEFTMETA, ecodes.KEY_RIGHTMETA):
                     if event.value == 1:
                         self.meta_pressed = True
@@ -62,13 +63,13 @@ class KeyboardListener:
                         await self._trigger_release()
 
     async def _trigger_press(self):
-        if asyncio.inspect.iscoroutinefunction(self.on_press):
+        if inspect.iscoroutinefunction(self.on_press):
             await self.on_press()
         else:
             self.on_press()
 
     async def _trigger_release(self):
-        if asyncio.inspect.iscoroutinefunction(self.on_release):
+        if inspect.iscoroutinefunction(self.on_release):
             await self.on_release()
         else:
             self.on_release()
