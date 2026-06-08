@@ -1,25 +1,33 @@
 import asyncio
 from core.listener import KeyboardListener
 from core.recorder import AudioRecorder
-# from core.transcriber import WhisperTranscriber
+from core.transcriber import WhisperTranscriber
 # from core.brain import OllamaBrain
 # from core.speaker import PiperSpeaker
 
 recorder = AudioRecorder()
 
+transcriber = WhisperTranscriber(model_path="whisper-models/ggml-small.bin", cli_path="bin/whisper-cli", language="pt")
+
 async def iniciar_gravacao():
-    print("[Main] Gatilho acionado. Gravando... (Fale agora)")
+    print("Gatilho acionado. Gravando... (Fale agora)")
     recorder.start_recording()
 
 async def parar_gravacao():
-    print("[Main] Gatilho liberado. Interrompendo gravação...")
+    print("Gatilho liberado. Interrompendo gravação...")
     caminho_arquivo = recorder.stop_recording()
     
     if caminho_arquivo:
-        print(f"[Main] Áudio salvo com sucesso em: {caminho_arquivo}")
-        # O próximo passo será enviar este arquivo para core/transcriber.py
+        print("Iniciando transcrição local com Whisper...")
+        
+        texto_transcrito = await transcriber.transcribe(caminho_arquivo)
+        
+        if texto_transcrito:
+            print(f"\nuser: {texto_transcrito}")
+        else:
+            print("Whisper não conseguiu identificar nenhuma fala")
     else:
-        print("[Main] Erro: Nenhum dado de áudio foi capturado.")
+        print("Erro: Nenhum dado de áaudio foi gerado.")
 
 
 async def main():
