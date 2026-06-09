@@ -7,13 +7,28 @@ import platform
 from datetime import date
 import os
 from collections import deque
+import random
 
 class OllamaBrain:
     def __init__(self, model_name="llama3.2", api_url="http://localhost:11434/api/generate"):
         self.model_name = model_name
         self.api_url = api_url
-        # Mantém até 20 elementos (10 perguntas do usuário + 10 respostas da IA)
         self.history = deque(maxlen=20)
+        
+        # Define o caminho para o arquivo piadas.json na raiz do projeto
+        self.piadas_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "piadas.json"))
+        self.wordlist_piadas = self._load_piadas()
+
+    def _load_piadas(self):
+        try:
+            with open(self.piadas_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Aviso: Não foi possível carregar o arquivo de piadas ({e}). Usando fallback.")
+            return [{
+                "pergunta": "Por que o computador foi ao médico?",
+                "resposta": "Porque ele estava com vírus."
+            }]
 
     def _get_system_info(self):
         try:
@@ -53,7 +68,6 @@ class OllamaBrain:
             "Responda comandos sempre no gerúndio, EXEMPLO: 'abrindo o google chrome' ou 'abrindo a calculadora', nunca 'abri o google chrome' ou 'abri a calculadora'."
         )
         
-        # linha do tempo das conversas passadas
         historico_txt = ""
         for interacao in self.history:
             historico_txt += f"{interacao['role']}: {interacao['content']}\n"
@@ -77,17 +91,14 @@ class OllamaBrain:
         )
         
         try:
-            # Ollama pode demorar um pouco para responder, especialmente se o modelo for grande ou se o prompt for complexo. Por isso, o timeout de 65 segundos
             with urllib.request.urlopen(req, timeout=65) as response:
                 res_body = response.read().decode("utf-8")
                 res_json = json.loads(res_body)
                 raw_response = res_json.get("response", "").strip()
                 
-                # Salva a iteração atual no histórico caso a requisição tenha sucesso
                 self.history.append({"role": "Usuário", "content": prompt})
                 self.history.append({"role": "Assistente", "content": raw_response})
                 
-                # Converte a string JSON do Llama em um dicionário Python funcional
                 return json.loads(raw_response)
         except Exception as e:
             return {
@@ -98,5 +109,33 @@ class OllamaBrain:
     async def ask(self, prompt):
         if not prompt:
             return ""
+
+        # Caso 1: Verifica se a última interação foi uma piada e o usuário está pedindo a punchline
+        if self.history:
+            ultima_interacao = self.history[-1]
+            if ultima_interacao.get("role") == "Assistente" and "punchline" in ultima_interacao:
+                resposta_final = ultima_interacao["punchline"]
+                resposta_mock = {"fala": resposta_final, "comando": ""}
+                
+                # Atualiza o histórico para incluir a punchline como parte da resposta do assistente
+                self.history.append({"role": "Usuário", "content": prompt})
+                self.history.append({"role": "Assistente", "content": json.dumps(resposta_mock)})
+                return resposta_mock
+
+        # Caso 2: Usuário pede uma nova piada
+        prompt_normalizado = prompt.lower()
+        if "piada" in prompt_normalizado or "conte uma piada" in prompt_normalizado:
+            joke = random.choice(self.wordlist_piadas)
+            resposta_mock = {"fala": joke["pergunta"], "comando": ""}
+            
+            
+            self.history.append({"role": "Usuário", "content": prompt})
+            self.history.append({
+                "role": "Assistente", 
+                "content": json.dumps(resposta_mock), 
+                "punchline": joke["resposta"]
+            })
+            
+            return resposta_mock
 
         return await asyncio.to_thread(self._send_request, prompt)
