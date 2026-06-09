@@ -25,20 +25,18 @@ class KeyboardListener:
 
         for d in devices:
             if "keyboard" in d.name.lower():
-                print(f"Teclado detectado: {d.name} ({d.path})")
                 return d
 
         for d in devices:
             capabilities = d.capabilities()
             if ecodes.EV_KEY in capabilities:
                 if ecodes.KEY_ENTER in capabilities[ecodes.EV_KEY]:
-                    print(f"Teclado detectado por capacidade: {d.name} ({d.path})")
                     return d
 
         raise RuntimeError("Nenhum teclado físico compatível foi encontrado.")
 
     async def monitor_hotkey(self):
-        
+        print("Seja bem-vindo ao frankAI! Pressione Super + F para falar com o assistente. Ctrl+C para sair...\n\n")
         async for event in self.device.async_read_loop():
             if event.type == ecodes.EV_KEY:
                 
