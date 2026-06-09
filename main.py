@@ -43,8 +43,8 @@ async def iniciar_gravacao():
     recorder.start_recording()
 
 async def parar_gravacao():
-    print("Gatilho liberado. Interrompendo gravação...")
     os.system("stty echo")
+    print("\r\033[KGatilho liberado. Interrompendo gravação...")
     caminho_arquivo = recorder.stop_recording()
     
     if caminho_arquivo:

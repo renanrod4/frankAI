@@ -6,10 +6,15 @@ import urllib.request
 import platform
 from datetime import date
 import os
+from collections import deque
+
 class OllamaBrain:
     def __init__(self, model_name="llama3.2", api_url="http://localhost:11434/api/generate"):
         self.model_name = model_name
         self.api_url = api_url
+        # Mantém até 20 elementos (10 perguntas do usuário + 10 respostas da IA)
+        self.history = deque(maxlen=20)
+
     def _get_system_info(self):
         try:
             import os
@@ -21,6 +26,7 @@ class OllamaBrain:
         data_atual = date.today().isoformat()
         
         return f"Data atual: {data_atual}, Info do PC: {info_pc}, Usuário logado: {usuario}"
+
     def _send_request(self, prompt):
         contexto_sistema = self._get_system_info()
         
@@ -41,15 +47,20 @@ class OllamaBrain:
             "  * 'abrir pasta home' ou 'meus arquivos' -> xdg-open ~\n"
             "- 'terminal' -> gnome-terminal\n"
             "- 'cria pasta' -> mkdir\n\n"
-            "- considere como 'home' o /home/{nome do usário que você tem acesso} ou simplemente use o atalho ~ para se referir a esta pasta. Exemplo: 'abra a pasta de downloads' -> 'xdg-open ~/Downloads'\n"
+            "- considere como 'home' o /home/{nome do usário que você tem acesso} ou simplesmente use o atalho ~ para se referir a esta pasta. Exemplo: 'abra a pasta de downloads' -> 'xdg-open ~/Downloads'\n"
             "Se o comando exigir interface gráfica (como abrir a pasta ou calculadora), "
             "apenas envie o binário correspondente no campo 'comando' sem o caractere '&'."
             "Responda comandos sempre no gerúndio, EXEMPLO: 'abrindo o google chrome' ou 'abrindo a calculadora', nunca 'abri o google chrome' ou 'abri a calculadora'."
         )
         
+        # linha do tempo das conversas passadas
+        historico_txt = ""
+        for interacao in self.history:
+            historico_txt += f"{interacao['role']}: {interacao['content']}\n"
+        
         payload = {
             "model": self.model_name,
-            "prompt": f"{system_context}\n\nUsuário: {prompt}\nAssistente:",
+            "prompt": f"{system_context}\n\n{historico_txt}Usuário: {prompt}\nAssistente:",
             "stream": False,
             "format": "json",
             "keep_alive": -1,
@@ -72,6 +83,10 @@ class OllamaBrain:
                 res_json = json.loads(res_body)
                 raw_response = res_json.get("response", "").strip()
                 
+                # Salva a iteração atual no histórico caso a requisição tenha sucesso
+                self.history.append({"role": "Usuário", "content": prompt})
+                self.history.append({"role": "Assistente", "content": raw_response})
+                
                 # Converte a string JSON do Llama em um dicionário Python funcional
                 return json.loads(raw_response)
         except Exception as e:
@@ -79,6 +94,7 @@ class OllamaBrain:
                 "fala": f"Erro de comunicação com o cérebro: {e}",
                 "comando": ""
             }
+
     async def ask(self, prompt):
         if not prompt:
             return ""
