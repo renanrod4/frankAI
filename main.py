@@ -1,11 +1,12 @@
 import argparse
 import asyncio
 import json
+import os
 from core.listener import KeyboardListener
 from core.recorder import AudioRecorder
 from core.transcriber import WhisperTranscriber
 from core.brain import OllamaBrain
-# from core.speaker import PiperSpeaker
+from core.speaker import PiperSpeaker
 
 # Configuração dos parâmetros de inicialização
 parser = argparse.ArgumentParser(description="frankAI Core")
@@ -16,6 +17,7 @@ MODO_DEV = args.dev
 recorder = AudioRecorder()
 transcriber = WhisperTranscriber(model_path="whisper-models/ggml-small.bin", cli_path="bin/whisper-cli", language="pt")
 brain = OllamaBrain(model_name="llama3.2")
+speaker = PiperSpeaker()
 
 async def executar_comando_linux(comando):
     if not comando:
@@ -37,10 +39,12 @@ async def executar_comando_linux(comando):
 
 async def iniciar_gravacao():
     print("Gatilho acionado. Gravando... (Fale agora)")
+    os.system("stty -echo")
     recorder.start_recording()
 
 async def parar_gravacao():
     print("Gatilho liberado. Interrompendo gravação...")
+    os.system("stty echo")
     caminho_arquivo = recorder.stop_recording()
     
     if caminho_arquivo:
@@ -60,6 +64,7 @@ async def parar_gravacao():
             
             if fala:
                 print(f"frankAI: {fala}\n")
+                await speaker.speak(fala)
             
             if comando:
                 await executar_comando_linux(comando)
