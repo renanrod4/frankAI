@@ -44,7 +44,7 @@ async def iniciar_gravacao():
 
 async def parar_gravacao():
     os.system("stty echo")
-    print("\r\033[KGatilho liberado. Interrompendo gravação...")
+    print("\r\033[KGatilho liberado. processando o áudio...")
     caminho_arquivo = recorder.stop_recording()
     
     if caminho_arquivo:
@@ -64,7 +64,7 @@ async def parar_gravacao():
             
             if fala:
                 print(f"frankAI: {fala}\n")
-                await speaker.speak(fala)
+                await speaker.speak('... ... '+fala)
             
             if comando:
                 await executar_comando_linux(comando)

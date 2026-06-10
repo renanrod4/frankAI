@@ -2,3 +2,4 @@ bin/
 whisper-models/
 voice/*.onnx
 .venv/
+.samples/input.wav

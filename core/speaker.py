@@ -14,7 +14,9 @@ class PiperSpeaker:
             abs_model_path = os.path.abspath(self.model_path)
             bin_dir = os.path.dirname(abs_cli_path)
 
-            comando_pipe = f"LD_LIBRARY_PATH=. ./piper --model {abs_model_path} --output_file - | aplay -D default"
+            # Injeta 0.4s de silêncio real (8820 samples de 2 bytes a 22050Hz) antes do áudio bruto do Piper
+            # Para evitar cortes no início da fala
+            comando_pipe = f"(dd if=/dev/zero bs=2 count=8820 2>/dev/null && LD_LIBRARY_PATH=. ./piper --model {abs_model_path} --output_raw) | aplay -t raw -f S16_LE -r 22050 -c 1 -D default"
             
             processo = await asyncio.create_subprocess_shell(
                 comando_pipe,
