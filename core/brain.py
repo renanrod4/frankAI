@@ -65,7 +65,7 @@ class OllamaBrain:
             "- considere como 'home' o /home/{nome do usário que você tem acesso} ou simplesmente use o atalho ~ para se referir a esta pasta. Exemplo: 'abra a pasta de downloads' -> 'xdg-open ~/Downloads'\n"
             "Se o comando exigir interface gráfica (como abrir a pasta ou calculadora), "
             "apenas envie o binário correspondente no campo 'comando' sem o caractere '&'."
-            "Responda comandos sempre no gerúndio, EXEMPLO: 'abrindo o google chrome' ou 'abrindo a calculadora', nunca 'abri o google chrome' ou 'abri a calculadora'."
+            "Você não deve pedir para o usuário digitar o comando no terminal, apenas envie o comando pronto no campo 'comando' da resposta JSON. e diga 'Abrindo [nome do programa]'"
         )
         
         historico_txt = ""
