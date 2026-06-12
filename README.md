@@ -75,7 +75,7 @@ git lfs install
 Com o Git LFS devidamente ativo, clone o repositório. O processo fará o download automático dos binários pesados de IA:
 
 ```bash
-git clone [https://github.com/renanrod4/frankAI.git](https://github.com/renanrod4/frankAI.git)
+git clone https://github.com/renanrod4/frankAI.git
 cd frankAI
 ```
 
