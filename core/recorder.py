@@ -9,8 +9,7 @@ from core.notifications import disparar_notificacao
 
 
 class AudioRecorder:
-    def __init__(self, sample_rate=16000, channels=1, output_dir="samples"):
-
+    def __init__(self, sample_rate=16000, channels=1, output_dir="/dev/shm"):
         self.sample_rate = sample_rate
         self.channels = channels
         self.output_dir = output_dir
@@ -18,7 +17,7 @@ class AudioRecorder:
         self.stream = None
         self.recording_path = None
 
-        # Garante que a pasta de `samples` exista para salvar os arquivos de áudio
+        # Certifica-se de que o diretório selecionado esteja acessível no sistema
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
@@ -33,6 +32,7 @@ class AudioRecorder:
         while not self.audio_queue.empty():
             self.audio_queue.get()
 
+        # Define o destino do arquivo final diretamente no espaço de memória compartilhada
         self.recording_path = os.path.join(self.output_dir, "input.wav")
 
         # Configura e inicia o stream de áudio
@@ -75,7 +75,7 @@ class AudioRecorder:
 
         full_audio = np.concatenate(audio_data, axis=0)
 
-        # Salva o áudio gravado em um arquivo WAV usando a biblioteca wave
+        # Salva o áudio gravado em um arquivo WAV estruturado na RAM
         with wave.open(self.recording_path, "wb") as wf:
             wf.setnchannels(self.channels)
             wf.setsampwidth(2)
