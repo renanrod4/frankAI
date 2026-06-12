@@ -1,0 +1,110 @@
+{
+  "abrir firefox": {
+    "fala": "Abrindo o Firefox...",
+    "comando": "firefox"
+  },
+  "abrir chrome": {
+    "fala": "Abrindo o Google Chrome...",
+    "comando": "google-chrome"
+  },
+  "abrir google chrome": {
+    "fala": "Abrindo o Google Chrome...",
+    "comando": "google-chrome"
+  },
+  "abrir brave": {
+    "fala": "Abrindo o navegador Brave...",
+    "comando": "brave-browser"
+  },
+  "abrir navegador": {
+    "fala": "Abrindo o navegador de internet...",
+    "comando": "firefox"
+  },
+  "abrir vscode": {
+    "fala": "Abrindo o Visual Studio Code...",
+    "comando": "code"
+  },
+  "abrir visual studio code": {
+    "fala": "Abrindo o Visual Studio Code...",
+    "comando": "code"
+  },
+  "abrir terminal": {
+    "fala": "Abrindo um novo terminal...",
+    "comando": "x-terminal-emulator"
+  },
+  "abrir spotify": {
+    "fala": "Iniciando o Spotify...",
+    "comando": "spotify"
+  },
+  "abrir discord": {
+    "fala": "Abrindo o Discord...",
+    "comando": "discord"
+  },
+  "abrir libreoffice": {
+    "fala": "Abrindo o LibreOffice...",
+    "comando": "libreoffice"
+  },
+  "abrir libre office": {
+    "fala": "Abrindo o LibreOffice...",
+    "comando": "libreoffice"
+  },
+  "abrir writer": {
+    "fala": "Abrindo o editor de texto LibreOffice Writer...",
+    "comando": "libreoffice --writer"
+  },
+  "abrir calc": {
+    "fala": "Abrindo a planilha LibreOffice Calc...",
+    "comando": "libreoffice --calc"
+  },
+  "abrir vlc": {
+    "fala": "Abrindo o reprodutor de mídia VLC...",
+    "comando": "vlc"
+  },
+  "abrir gimp": {
+    "fala": "Abrindo o editor de imagens GIMP...",
+    "comando": "gimp"
+  },
+  "abrir meus arquivos": {
+    "fala": "Abrindo o gerenciador de arquivos na pasta pessoal...",
+    "comando": "xdg-open ~"
+  },
+  "abrir pasta home": {
+    "fala": "Abrindo pasta pessoal...",
+    "comando": "xdg-open ~"
+  },
+  "abrir downloads": {
+    "fala": "Abrindo a sua pasta de downloads...",
+    "comando": "xdg-open ~/Downloads"
+  },
+  "abrir documentos": {
+    "fala": "Abrindo a sua pasta de documentos...",
+    "comando": "xdg-open ~/Documentos"
+  },
+  "abrir site do google": {
+    "fala": "Acessando o Google...",
+    "comando": "xdg-open https://google.com"
+  },
+  "abrir github": {
+    "fala": "Abrindo o seu perfil do GitHub...",
+    "comando": "xdg-open https://github.com"
+  },
+  "abrir youtube": {
+    "fala": "Abrindo o YouTube...",
+    "comando": "xdg-open https://youtube.com"
+  },
+  "abrir chatgpt": {
+    "fala": "Abrindo o ChatGPT no navegador...",
+    "comando": "xdg-open https://chatgpt.com"
+  },
+  "calculadora": {
+    "fala": "Abrindo a calculadora do sistema...",
+    "comando": "gnome-calculator"
+  },
+  "desligar o computador": {
+    "fala": "Desligando o sistema operacional em um minuto...",
+    "comando": "shutdown now"
+  },
+  "reiniciar o computador": {
+    "fala": "Reiniciando o sistema operacional agora...",
+    "comando": "reboot"
+  }
+}

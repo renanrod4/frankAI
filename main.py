@@ -18,7 +18,7 @@ args, _ = parser.parse_known_args()
 MODO_DEV = args.dev
 
 recorder = AudioRecorder()
-transcriber = WhisperTranscriber(model_size="tiny", device="cpu", compute_type="int8")
+transcriber = WhisperTranscriber(model_size="small", device="cpu", compute_type="int8")
 brain = OllamaBrain(model_name="llama3.2")
 speaker = PiperSpeaker()
 
