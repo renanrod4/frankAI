@@ -46,6 +46,8 @@ class WhisperTranscriber:
             "-l",
             self.language,
             "-nt",
+            "-t",
+            "4",
         ]
 
         try:
@@ -56,9 +58,7 @@ class WhisperTranscriber:
             stdout, stderr = await process.communicate()
 
             if process.returncode != 0:
-                print(
-                    f"Erro na execução do Whisper: {stderr.decode().strip()}"
-                )
+                print(f"Erro na execução do Whisper: {stderr.decode().strip()}")
                 disparar_notificacao(
                     titulo="FrankAI: Erro de Transcrição",
                     mensagem="Ocorreu uma falha interna ao executar o Whisper.",
