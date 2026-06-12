@@ -6,7 +6,7 @@ from faster_whisper import WhisperModel
 from core.notifications import disparar_notificacao
 
 class WhisperTranscriber:
-    def __init__(self, model_size="tiny", device="cpu", compute_type="int8"):
+    def __init__(self, model_size="small", device="cpu", compute_type="int8"):
         # Carrega o modelo de voz na memória RAM para iniciar instantaneamente
         try:
             # int8 e 4 threads fazem o modelo rodar leve e sem travar o computador
@@ -50,7 +50,7 @@ class WhisperTranscriber:
 
     def _processar_audio(self, audio_path):
         # Lista de palavras textuais que o assistente deve esperar encontrar no áudio
-        palavras_chave = "FrankAI, Firefox, Google , Chrome, Spotify, VS Code, Visual studio code, Discord, terminal, YouTube, GitHub, sudo, execute o comando, abra o, feche a"
+        palavras_chave = "FrankAI, Firefox,Google , Chrome, Spotify, VS Code, Visual studio code, Discord, terminal, YouTube, GitHub, sudo, execute o comando, abra o aplicativo, feche a janela."
         
         # Transcreve o áudio gerado ignorando o silêncio ou barulhos de fundo
         segments, info = self.model.transcribe(
