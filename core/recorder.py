@@ -52,9 +52,9 @@ class AudioRecorder:
             )
             self.stream = None
 
-        def stop_recording(self):
-            if not self.stream:
-                return None
+    def stop_recording(self):
+        if not self.stream:
+            return None
 
         self.stream.stop()
         self.stream.close()
