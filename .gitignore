@@ -1,5 +1,4 @@
-bin/
-whisper-models/
-voice/*.onnx
 .venv/
-.samples/input.wav
+__pycache__/
+*.pyc
+samples/input.wav

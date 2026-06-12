@@ -3,13 +3,11 @@
 import asyncio
 import inspect
 from evdev import InputDevice, list_devices, ecodes
+from core.notifications import disparar_notificacao
+
 
 class KeyboardListener:
     def __init__(self, on_press_callback, on_release_callback):
-        """
-        Gerencia a escuta do teclado
-        Recebe dois callbacks que serão executadas nos eventos do atalho.
-        """
         self.device = self._find_keyboard()
         self.meta_pressed = False
         self.f_pressed = False
@@ -19,7 +17,14 @@ class KeyboardListener:
     def _find_keyboard(self):
         paths = list_devices()
         if not paths:
-            raise RuntimeError("Nenhum dispositivo de entrada acessível. Verifique as permissões do grupo input.")
+            disparar_notificacao(
+                titulo="FrankAI: Erro de Permissão",
+                mensagem="Nenhum dispositivo de entrada acessível. Verifique as permissões do grupo input.",
+                icone="dialog-error",
+            )
+            raise RuntimeError(
+                "Nenhum dispositivo de entrada acessível. Verifique as permissões do grupo input."
+            )
 
         devices = [InputDevice(path) for path in paths]
 
@@ -33,13 +38,20 @@ class KeyboardListener:
                 if ecodes.KEY_ENTER in capabilities[ecodes.EV_KEY]:
                     return d
 
+        disparar_notificacao(
+            titulo="FrankAI: Teclado Não Encontrado",
+            mensagem="Nenhum teclado físico compatível foi encontrado.",
+            icone="dialog-error",
+        )
         raise RuntimeError("Nenhum teclado físico compatível foi encontrado.")
 
     async def monitor_hotkey(self):
-        print("Seja bem-vindo ao frankAI! Pressione Super + F para falar com o assistente. Ctrl+C para sair...\n\n")
+        print(
+            "Seja bem-vindo ao frankAI! Pressione Super + F para falar com o assistente. Ctrl+C para sair...\n\n"
+        )
         async for event in self.device.async_read_loop():
             if event.type == ecodes.EV_KEY:
-                
+
                 # Gerenciamento da tecla Super (Meta ou Windows)
                 if event.code in (ecodes.KEY_LEFTMETA, ecodes.KEY_RIGHTMETA):
                     if event.value == 1:

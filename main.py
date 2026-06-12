@@ -7,17 +7,25 @@ from core.recorder import AudioRecorder
 from core.transcriber import WhisperTranscriber
 from core.brain import OllamaBrain
 from core.speaker import PiperSpeaker
+from core.notifications import disparar_notificacao
 
 # Configuração dos parâmetros de inicialização
 parser = argparse.ArgumentParser(description="frankAI Core")
-parser.add_argument("--dev", action="store_true", help="Exibe o output JSON bruto do Ollama")
+parser.add_argument(
+    "--dev", action="store_true", help="Exibe o output JSON bruto do Ollama"
+)
 args, _ = parser.parse_known_args()
 MODO_DEV = args.dev
 
 recorder = AudioRecorder()
-transcriber = WhisperTranscriber(model_path="whisper-models/ggml-small.bin", cli_path="bin/whisper-cli", language="pt")
+transcriber = WhisperTranscriber(
+    model_path="whisper-models/ggml-small.bin",
+    cli_path="bin/whisper-cli",
+    language="pt",
+)
 brain = OllamaBrain(model_name="llama3.2")
 speaker = PiperSpeaker()
+
 
 async def executar_comando_linux(comando):
     if not comando:
@@ -26,50 +34,86 @@ async def executar_comando_linux(comando):
     # `&` no final do comando é para o comando rode em segundo plano
     if not comando.endswith("&"):
         comando = f"{comando} &"
-    
+
     try:
         processo = await asyncio.create_subprocess_shell(
             comando,
             stdout=asyncio.subprocess.DEVNULL,
-            stderr=asyncio.subprocess.DEVNULL
+            stderr=asyncio.subprocess.DEVNULL,
         )
         asyncio.create_task(processo.wait())
     except Exception as e:
         print(f"Erro ao executar comando: {e}")
+        disparar_notificacao(
+            titulo="Falha na Execução",
+            mensagem=f"Não foi possível rodar o comando gerado.",
+            icone="dialog-error",
+        )
+
 
 async def iniciar_gravacao():
     print("Gatilho acionado. Gravando... (Fale agora)")
     os.system("stty -echo")
     recorder.start_recording()
 
+
 async def parar_gravacao():
     os.system("stty echo")
     print("\r\033[KGatilho liberado. processando o áudio...")
+    disparar_notificacao(
+        titulo="Frank AI está processando sua fala",
+        mensagem="Ele fará o que você precisa em breve",
+        icone="dialog-information",
+    )
     caminho_arquivo = recorder.stop_recording()
-    
+
     if caminho_arquivo:
         texto_transcrito = await transcriber.transcribe(caminho_arquivo)
-        
+
         if texto_transcrito:
             print(f"\nuser: {texto_transcrito}")
             print("Pensando...")
-            
-            resposta_ia = await brain.ask(texto_transcrito)
-            
+
+            try:
+                resposta_ia = await brain.ask(texto_transcrito)
+            except Exception as e:
+                print(f"Erro ao conectar ao Ollama: {e}")
+                disparar_notificacao(
+                    titulo="FrankAI: Erro no Modelo",
+                    mensagem="O serviço do Ollama parece estar offline ou inacessível.",
+                    icone="dialog-error",
+                )
+                return
+
             if MODO_DEV:
-                print(f"[DEV JSON]: {json.dumps(resposta_ia, indent=2, ensure_ascii=False)}")
-            
+                print(
+                    f"[DEV JSON]: {json.dumps(resposta_ia, indent=2, ensure_ascii=False)}"
+                )
+
             fala = resposta_ia.get("fala", "")
             comando = resposta_ia.get("comando", "")
-            
+
+            if not fala and not comando:
+                disparar_notificacao(
+                    titulo="FrankAI: Comando não reconhecido",
+                    mensagem="A intenção não foi compreendida. Tente reformular a frase.",
+                    icone="dialog-information",
+                )
+                return
+
             if fala:
                 print(f"frankAI: {fala}\n")
-                await speaker.speak('... ... '+fala)
-            
+                await speaker.speak("... ... " + fala)
+
             if comando:
                 await executar_comando_linux(comando)
         else:
             print("Whisper não conseguiu identificar nenhuma fala")
+            disparar_notificacao(
+                titulo="FrankAI não conseguiu entender nenhuma fala",
+                mensagem="Talvez seu microfone não esteja conectado ou tente falar mais alto",
+                icone="dialog-warning",
+            )
     else:
         print("Erro: Nenhum dado de áudio foi gerado.")
 
@@ -79,10 +123,22 @@ async def main():
         listener = KeyboardListener(
             on_press_callback=iniciar_gravacao, on_release_callback=parar_gravacao
         )
+        # Notificação de inicialização desativada por padrão para que não fique notificiando o usuario a cada inicialização
+        # disparar_notificacao(
+        #     titulo="FrankAI Inicializado",
+        #     mensagem="O assistente está rodando em background e pronto para uso.",
+        #     icone="dialog-information",
+        #)
+
         await listener.monitor_hotkey()
 
     except PermissionError:
         print("Erro de permissão ao acessar o hardware. Verifique o grupo input.")
+        disparar_notificacao(
+            titulo="FrankAI: Erro Crítico",
+            mensagem="Sem permissão para acessar os inputs de hardware. Verifique o grupo input.",
+            icone="dialog-error",
+        )
     except KeyboardInterrupt:
         print("\nEncerrando o assistente frankAI.")
 
