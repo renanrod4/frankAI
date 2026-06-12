@@ -5,6 +5,8 @@ import wave
 import os
 import numpy as np
 import sounddevice as sd
+from core.notifications import disparar_notificacao
+
 
 class AudioRecorder:
     def __init__(self, sample_rate=16000, channels=1, output_dir="samples"):
@@ -22,7 +24,7 @@ class AudioRecorder:
 
     def _audio_callback(self, indata, frames, time, status):
         if status:
-            print(f"[Recorder] Status do buffer: {status}", flush=True)
+            print(f"Status do buffer: {status}", flush=True)
         # Coloca os dados de áudio recebidos na fila para processamento
         self.audio_queue.put(indata.copy())
 
@@ -32,19 +34,27 @@ class AudioRecorder:
             self.audio_queue.get()
 
         self.recording_path = os.path.join(self.output_dir, "input.wav")
-        
-        # Configura e inicia o stream de áudio 
-        self.stream = sd.InputStream(
-            samplerate=self.sample_rate,
-            channels=self.channels,
-            dtype='int16',
-            callback=self._audio_callback
-        )
-        self.stream.start()
 
-    def stop_recording(self):
-        if not self.stream:
-            return None
+        # Configura e inicia o stream de áudio
+        try:
+            self.stream = sd.InputStream(
+                samplerate=self.sample_rate,
+                channels=self.channels,
+                dtype="int16",
+                callback=self._audio_callback,
+            )
+            self.stream.start()
+        except Exception as e:
+            disparar_notificacao(
+                titulo="FrankAI: Erro no Microfone",
+                mensagem="Não foi possível iniciar a captura de áudio. Verifique o dispositivo.",
+                icone="dialog-error",
+            )
+            self.stream = None
+
+        def stop_recording(self):
+            if not self.stream:
+                return None
 
         self.stream.stop()
         self.stream.close()
@@ -56,12 +66,17 @@ class AudioRecorder:
             audio_data.append(self.audio_queue.get())
 
         if not audio_data:
+            disparar_notificacao(
+                titulo="FrankAI: Áudio Não Gravado",
+                mensagem="Nenhum dado de áudio foi gerado pelo microfone.",
+                icone="dialog-warning",
+            )
             return None
 
         full_audio = np.concatenate(audio_data, axis=0)
 
         # Salva o áudio gravado em um arquivo WAV usando a biblioteca wave
-        with wave.open(self.recording_path, 'wb') as wf:
+        with wave.open(self.recording_path, "wb") as wf:
             wf.setnchannels(self.channels)
             wf.setsampwidth(2)
             wf.setframerate(self.sample_rate)
