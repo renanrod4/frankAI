@@ -18,11 +18,7 @@ args, _ = parser.parse_known_args()
 MODO_DEV = args.dev
 
 recorder = AudioRecorder()
-transcriber = WhisperTranscriber(
-    model_path="whisper-models/ggml-small.bin",
-    cli_path="bin/whisper-cli",
-    language="pt",
-)
+transcriber = WhisperTranscriber(model_size="tiny", device="cpu", compute_type="int8")
 brain = OllamaBrain(model_name="llama3.2")
 speaker = PiperSpeaker()
 
@@ -128,7 +124,7 @@ async def main():
         #     titulo="FrankAI Inicializado",
         #     mensagem="O assistente está rodando em background e pronto para uso.",
         #     icone="dialog-information",
-        #)
+        # )
 
         await listener.monitor_hotkey()
 

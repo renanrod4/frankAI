@@ -1,83 +1,65 @@
 # Esse script é responsável por transcrever o áudio gravado usando o modelo Whisper, usando o whisper-cli
-import asyncio
+
 import os
+import asyncio
+from faster_whisper import WhisperModel
 from core.notifications import disparar_notificacao
 
-
 class WhisperTranscriber:
-    def __init__(
-        self,
-        model_path="whisper-models/ggml-tiny.bin",
-        cli_path="bin/whisper-cli",
-        language="pt",
-    ):
-        self.model_path = model_path
-        self.cli_path = cli_path
-        self.language = language
-
-        if not os.path.exists(self.cli_path):
+    def __init__(self, model_size="tiny", device="cpu", compute_type="int8"):
+        # Carrega o modelo de voz na memória RAM para iniciar instantaneamente
+        try:
+            # int8 e 4 threads fazem o modelo rodar leve e sem travar o computador
+            self.model = WhisperModel(
+                model_size, 
+                device=device, 
+                compute_type=compute_type,
+                cpu_threads=4
+            )
+        except Exception as e:
+            # Avisa se o modelo der erro ao carregar logo na inicialização do script
             disparar_notificacao(
-                titulo="FrankAI: Erro no Whisper",
-                mensagem="Binário do Whisper não foi encontrado.",
-                icone="dialog-error",
-            )
-            raise FileNotFoundError(
-                f"Binário do Whisper não encontrado em {self.cli_path}"
-            )
-        if not os.path.exists(self.model_path):
-            disparar_notificacao(
-                titulo="FrankAI: Erro no Whisper",
-                mensagem="Modelo binário do Whisper não foi encontrado.",
-                icone="dialog-error",
-            )
-            raise FileNotFoundError(
-                f"Modelo do Whisper não encontrado em {self.model_path}"
+                "FrankAI - Erro de Inicialização",
+                f"Não foi possível carregar o modelo de transcrição: {e}",
+                "dialog-error"
             )
 
-    async def transcribe(self, audio_path):
-        if not audio_path or not os.path.exists(audio_path):
+    async def transcribe(self, audio_path="/dev/shm/input.wav"):
+        # Recebe o áudio da gravação e inicia o processo de conversão para texto
+        if not os.path.exists(audio_path):
+            # Se o arquivo de áudio não estiver na memória RAM, avisa o usuário e para
+            disparar_notificacao(
+                "FrankAI - Transcrição",
+                "Arquivo de áudio temporário não foi encontrado pelo sistema.",
+                "dialog-warning"
+            )
             return ""
-        cmd = [
-            self.cli_path,
-            "-m",
-            self.model_path,
-            "-f",
-            audio_path,
-            "-l",
-            self.language,
-            "-nt",
-            "-t",
-            "4",
-        ]
 
         try:
-            # chama o whisper-cli
-            process = await asyncio.create_subprocess_exec(
-                *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-            )
-            stdout, stderr = await process.communicate()
-
-            if process.returncode != 0:
-                print(f"Erro na execução do Whisper: {stderr.decode().strip()}")
-                disparar_notificacao(
-                    titulo="FrankAI: Erro de Transcrição",
-                    mensagem="Ocorreu uma falha interna ao executar o Whisper.",
-                    icone="dialog-error",
-                )
-                return ""
-            text_output = stdout.decode("utf-8").strip()
-
-            # O whisper-cli às vezes retorna mensagens entre colchetes quando não consegue transcrever nada, então vamos filtrar isso
-            if text_output.startswith("[") and text_output.endswith("]"):
-                return ""
-
-            return text_output
-
+            # Roda o processamento em segundo plano para não travar as teclas de atalho
+            texto_transcrito = await asyncio.to_thread(self._processar_audio, audio_path)
+            return texto_transcrito
         except Exception as e:
-            print(f"falha GIGANTOSSAURICA no subprocesso: {e}")
+            # Avisa caso aconteça algum problema interno na hora de traduzir o áudio
             disparar_notificacao(
-                titulo="FrankAI: Falha no Transcritor",
-                mensagem="Erro crítico ao gerenciar o subprocesso do Whisper.",
-                icone="dialog-error",
+                "FrankAI - Falha no Mecanismo",
+                f"Ocorreu um erro durante a inferência local: {e}",
+                "dialog-error"
             )
             return ""
+
+    def _processar_audio(self, audio_path):
+        # Lista de palavras textuais que o assistente deve esperar encontrar no áudio
+        palavras_chave = "FrankAI, Firefox, Google , Chrome, Spotify, VS Code, Visual studio code, Discord, terminal, YouTube, GitHub, sudo, execute o comando, abra o, feche a"
+        
+        # Transcreve o áudio gerado ignorando o silêncio ou barulhos de fundo
+        segments, info = self.model.transcribe(
+            audio_path, 
+            beam_size=1, 
+            language="pt",
+            vad_filter=True,
+            initial_prompt=palavras_chave # Alimenta o modelo com o vocabulário correto antes da inferência
+        )
+        
+        # Junta todos os pedaços de texto encontrados em uma única frase limpa
+        return "".join([segment.text for segment in segments]).strip()
