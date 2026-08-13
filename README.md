@@ -9,6 +9,8 @@ Assistente de voz inteligente executado localmente em Python, projetado para dis
 - **evdev**: Leitura direta dos eventos de input do Kernel do Linux (`/dev/input`), garantindo o funcionamento do atalho global de forma independente do servidor gráfico (X11 ou Wayland) e da interface de usuário (Cinnamon, MATE, GNOME, Xfce).
 - **asyncio**: Gerenciamento assíncrono do loop de eventos para monitoramento de hardware e processamento de áudio sem bloqueio de thread.
 - **SoundDevice**: Captura de áudio de alta fidelidade integrada ao servidor de som do sistema operacional.
+- **PyQt6**: Indicador visual do estado do assistente, mostrando quando ele está ouvindo, pensando ou em erro.
+- **Notificações do sistema**: Mensagens de desktop para avisos de erro, início do processamento e confirmação de ações importantes.
 - **Git LFS**: Gerenciamento de histórico para os binários de redes neurais (modelos Whisper e Piper).
 
 ---
@@ -38,6 +40,15 @@ frankAI/
 │   ├── libpiper_phonemize.so.1.2.0
 │   ├── piper
 │   └── whisper-cli
+├── core/
+│   ├── __init__.py
+│   ├── brain.py
+│   ├── indicator.py
+│   ├── listener.py
+│   ├── notifications.py
+│   ├── recorder.py
+│   ├── speaker.py
+│   └── transcriber.py
 ├── voice/
 │   ├── pt_BR-faber-medium.onnx
 │   └── pt_BR-faber-medium.onnx.json
@@ -48,13 +59,10 @@ frankAI/
 ├── main.py
 ├── requirements.txt
 ├── setup.sh
-└── core/
-    ├── __init__.py
-    ├── brain.py
-    ├── listener.py
-    ├── recorder.py
-    ├── speaker.py
-    └── transcriber.py
+├── ARCHITECTURE.md
+├── comandos.json
+├── README.md
+└── .gitignore
 ```
 
 ---
@@ -118,6 +126,13 @@ O assistente monitora a combinação **Super + F** no nível do kernel.
 3. Solte a combinação.
 4. O áudio é processado e a resposta é falada ou executada.
 
+### Indicador visual e notificações
+
+A partir da versão atual, o projeto também inclui:
+
+- um indicador visual do status em [core/indicator.py](core/indicator.py), mostrando se o assistente está ouvindo, pensando ou em erro;
+- notificações do desktop em [core/notifications.py](core/notifications.py), para avisos e confirmação de processamento.
+
 ### Forçar um teclado específico
 
 ```bash
@@ -140,6 +155,7 @@ Se nenhum device for informado, o sistema continua procurando automaticamente.
 - O grupo `input` é obrigatório para escutar teclados em nível de hardware.
 - O Ollama precisa estar ativo em `http://localhost:11434`.
 - O Whisper e o Piper dependem de modelos locais presentes em `whisper-models/` e `voice/`.
+- O projeto também inclui feedback visual e notificações do sistema para uso em sessão real.
 - Se o teclado mudar entre máquinas, use `--device` para garantir o dispositivo correto.
 
 ---
