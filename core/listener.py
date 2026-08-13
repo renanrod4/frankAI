@@ -3,6 +3,8 @@
 import asyncio
 import inspect
 from evdev import InputDevice, list_devices, ecodes
+from core.notifications import disparar_notificacao
+
 
 class KeyboardListener:
     def __init__(self, on_press_callback, on_release_callback, device_path=None):
@@ -38,7 +40,14 @@ class KeyboardListener:
 
         all_paths = list_devices()
         if not all_paths:
-            raise RuntimeError("Nenhum dispositivo de entrada acessível. Verifique as permissões do grupo input.")
+            disparar_notificacao(
+                titulo="FrankAI: Erro de Permissao",
+                mensagem="Nenhum dispositivo de entrada acessivel. Verifique as permissoes do grupo input.",
+                icone="dialog-error",
+            )
+            raise RuntimeError(
+                "Nenhum dispositivo de entrada acessível. Verifique as permissões do grupo input."
+            )
 
         # Prioriza caminhos estáveis do sistema, como os encontrados em /dev/input/by-id/...
         for path in all_paths:
@@ -62,17 +71,26 @@ class KeyboardListener:
             except Exception:
                 continue
 
+        disparar_notificacao(
+            titulo="FrankAI: Teclado Nao Encontrado",
+            mensagem="Nenhum teclado fisico com as teclas Super e F foi encontrado.",
+            icone="dialog-error",
+        )
         print("[KeyboardListener] Lista de dispositivos detectados:")
         for path in candidate_paths:
             print(f"  - {path}")
-        raise RuntimeError("Nenhum teclado físico com as teclas Super e F foi encontrado.")
+        raise RuntimeError(
+            "Nenhum teclado físico com as teclas Super e F foi encontrado."
+        )
 
     async def monitor_hotkey(self):
-        print("Seja bem-vindo ao frankAI! Pressione Super + F para falar com o assistente. Ctrl+C para sair...\n\n")
+        print(
+            "Seja bem-vindo ao frankAI! Pressione Super + F para falar com o assistente. Ctrl+C para sair...\n\n"
+        )
         try:
             async for event in self.device.async_read_loop():
                 if event.type == ecodes.EV_KEY:
-                    
+
                     # Gerenciamento da tecla Super (Meta ou Windows)
                     if event.code in (ecodes.KEY_LEFTMETA, ecodes.KEY_RIGHTMETA):
                         if event.value == 1:
@@ -85,7 +103,11 @@ class KeyboardListener:
 
                     # Gerenciamento da tecla F
                     elif event.code == ecodes.KEY_F:
-                        if event.value == 1 and self.meta_pressed and not self.f_pressed:
+                        if (
+                            event.value == 1
+                            and self.meta_pressed
+                            and not self.f_pressed
+                        ):
                             self.f_pressed = True
                             await self._trigger_press()
                         elif event.value == 0 and self.f_pressed:
