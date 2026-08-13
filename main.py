@@ -11,8 +11,10 @@ from core.speaker import PiperSpeaker
 # Configuração dos parâmetros de inicialização
 parser = argparse.ArgumentParser(description="frankAI Core")
 parser.add_argument("--dev", action="store_true", help="Exibe o output JSON bruto do Ollama")
+parser.add_argument("--device", type=str, default=os.environ.get("FRANKAI_DEVICE"), help="Caminho explícito do teclado em /dev/input, por exemplo /dev/input/by-id/usb-...")
 args, _ = parser.parse_known_args()
 MODO_DEV = args.dev
+DEVICE_PATH = args.device
 
 recorder = AudioRecorder()
 transcriber = WhisperTranscriber(model_path="whisper-models/ggml-small.bin", cli_path="bin/whisper-cli", language="pt")
@@ -77,7 +79,9 @@ async def parar_gravacao():
 async def main():
     try:
         listener = KeyboardListener(
-            on_press_callback=iniciar_gravacao, on_release_callback=parar_gravacao
+            on_press_callback=iniciar_gravacao,
+            on_release_callback=parar_gravacao,
+            device_path=DEVICE_PATH,
         )
         await listener.monitor_hotkey()
 

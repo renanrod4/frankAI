@@ -1,5 +1,44 @@
+# binários nativos e modelos pesados do projeto
 bin/
 whisper-models/
 voice/*.onnx
+
+# ambiente virtual
 .venv/
-.samples/input.wav
+venv/
+
+# arquivos de áudio gravados em runtime
+samples/
+*.wav
+*.mp3
+*.flac
+
+# cache e artefatos Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# notebooks / IDE / sistema
+.ipynb_checkpoints/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# logs e relatórios locais
+*.log
+*.tmp
+*.bak
+
+# resultados de testes e build
+.pytype/
+build/
+dist/
+*.egg-info/
