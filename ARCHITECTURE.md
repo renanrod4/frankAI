@@ -9,8 +9,9 @@ Esse projeto é um assistente de voz local para Linux. A ideia é simples: você
 3. Quando detecta o atalho Super + F, chama o gravador de áudio em [core/recorder.py](core/recorder.py).
 4. Quando a tecla é solta, o áudio salvo em `samples/input.wav` vai para a transcrição em [core/transcriber.py](core/transcriber.py).
 5. O texto transcrito segue para o cérebro do assistente em [core/brain.py](core/brain.py), que conversa com o Ollama.
-6. Se vier uma resposta falada, o Piper em [core/speaker.py](core/speaker.py) lê isso em voz alta.
-7. Se vier um comando, o [main.py](main.py) roda esse comando no Linux em segundo plano.
+6. O status e avisos da execução são atualizados no indicador visual ([core/indicator.py](core/indicator.py)) e enviados via notificações do sistema ([core/notifications.py](core/notifications.py)).
+7. Se vier uma resposta falada, o Piper em [core/speaker.py](core/speaker.py) lê isso em voz alta.
+8. Se vier um comando, o [main.py](main.py) roda esse comando no Linux em segundo plano.
 
 A diferença importante da versão atual é que a detecção do teclado não depende só de um nome genérico. Ele prioriza dispositivos em `/dev/input/by-id` e `/dev/input/by-path`, e ainda aceita um caminho fixo via `--device` ou `FRANKAI_DEVICE`, o que reduz muito os erros em máquinas diferentes
 
@@ -50,6 +51,14 @@ Ou seja, ele deixa de depender só do nome do hardware e passa a escolher de for
 
 Quando para, ele monta um WAV com `wave`, salva em `samples/input.wav` e devolve o caminho do arquivo para a próxima etapa da pipeline.
 
+### [core/indicator.py](core/indicator.py)
+
+Gerencia a janela flutuante e minimalista em PyQt6 que fornece feedback visual em tempo real sobre o estado do assistente (ouvindo, pensando, falando ou erro).
+
+### [core/notifications.py](core/notifications.py)
+
+Envia notificações nativas de desktop para alertar o usuário sobre início do processamento, erros de transcrição ou confirmação de comandos executados.
+
 ### [core/transcriber.py](core/transcriber.py)
 
 Esse módulo chama o binário `whisper-cli` para transformar o áudio em texto.
@@ -75,6 +84,32 @@ Tem mais duas regras interessantes aqui:
 Esse módulo transforma texto em voz usando o Piper.
 
 Ele chama o binário em [bin/piper](bin/piper) com o modelo em [voice/pt_BR-faber-medium.onnx](voice/pt_BR-faber-medium.onnx) e toca o áudio com `aplay`. Antes de sair falando, ele injeta um pequeno trecho de silêncio para não cortar o começo da frase.
+
+### [comandos.json](comandos.json)
+
+Mapeamento de comandos do sistema e atalhos pré-configurados que o assistente pode consultar para executar ações diretas no ambiente Linux.
+
+### [piadas.json](piadas.json)
+
+Banco de piadas do assistente. O `brain.py` usa esse arquivo quando detecta pedido de piada, em vez de chamar o Ollama para tudo.
+
+### [setup.sh](setup.sh)
+
+Script de preparação do sistema. Além de adicionar o usuário ao grupo `input` e criar as regras de `udev` para o teclado, ele baixa e extrai automaticamente os binários e bibliotecas compartilhadas C++ nativas (`.so`) do Piper e eSpeak, dispensando o uso do Git LFS.
+
+### [requirements.txt](requirements.txt)
+
+Arquivo de dependências Python do projeto. No estado atual ele inclui as bibliotecas fundamentais para a captura e o uso do teclado em nível do Linux:
+
+- `numpy`: processamento de áudio e manipulação dos blocos capturados;
+- `sounddevice`: captura do stream de áudio do microfone;
+- `evdev`: leitura de eventos de teclado em `/dev/input`.
+
+Essas três bibliotecas são as principais dependências do runtime Python do assistente.
+
+### [.gitattributes](.gitattributes)
+
+Ajuda a controlar como certos arquivos são tratados pelo Git, principalmente quando o projeto usa arquivos grandes ou binários.
 
 ### [core/**init**.py](core/__init__.py)
 
@@ -109,28 +144,6 @@ Guarda o modelo de voz do Piper. O arquivo `pt_BR-faber-medium.onnx` é o modelo
 ### [samples/](samples)
 
 Pasta de saída dos áudios gravados. O `AudioRecorder` salva o arquivo temporário `input.wav` aqui antes de mandar para o Whisper.
-
-### [piadas.json](piadas.json)
-
-Banco de piadas do assistente. O `brain.py` usa esse arquivo quando detecta pedido de piada, em vez de chamar o Ollama para tudo.
-
-### [setup.sh](setup.sh)
-
-Script de preparação do sistema. Ele adiciona o usuário ao grupo `input` e cria a regra do `udev` para permitir leitura dos eventos do teclado sem precisar rodar o app como root.
-
-### [requirements.txt](requirements.txt)
-
-Arquivo de dependências Python do projeto. No estado atual ele inclui as bibliotecas fundamentais para a captura e o uso do teclado em nível do Linux:
-
-- `numpy`: processamento de áudio e manipulação dos blocos capturados;
-- `sounddevice`: captura do stream de áudio do microfone;
-- `evdev`: leitura de eventos de teclado em `/dev/input`.
-
-Essas três bibliotecas são as principais dependências do runtime Python do assistente.
-
-### [.gitattributes](.gitattributes)
-
-Ajuda a controlar como certos arquivos são tratados pelo Git, principalmente quando o projeto usa arquivos grandes ou binários.
 
 ## Coisas importantes para quem for mexer
 

@@ -11,8 +11,7 @@ Assistente de voz inteligente executado localmente em Python, projetado para dis
 - **SoundDevice**: Captura de áudio de alta fidelidade integrada ao servidor de som do sistema operacional.
 - **PyQt6**: Indicador visual do estado do assistente, mostrando quando ele está ouvindo, pensando ou em erro.
 - **Notificações do sistema**: Mensagens de desktop para avisos de erro, início do processamento e confirmação de ações importantes.
-- **Git LFS**: Gerenciamento de histórico para os binários de redes neurais (modelos Whisper e Piper).
-
+- **Gerenciamento de Dependências Nativas**: As bibliotecas compartilhadas C++ (`.so`) e runtime do Piper/eSpeak são baixadas e configuradas automaticamente via `setup.sh`
 ---
 
 ## Requisitos do Sistema
@@ -73,7 +72,7 @@ frankAI/
 
 ```bash
 sudo apt update
-sudo apt install git-lfs python3-venv python3-pip python3-dev build-essential alsa-utils xdotool libportaudio2 -y
+sudo apt install python3-venv python3-pip python3-dev build-essential alsa-utils xdotool libportaudio2 wget -y
 ```
 
 ### 2. Clonar o Repositório e Baixar os Modelos
@@ -81,7 +80,6 @@ sudo apt install git-lfs python3-venv python3-pip python3-dev build-essential al
 ```bash
 git clone https://github.com/renanrod4/frankAI.git
 cd frankAI
-git lfs pull
 ```
 
 ### 3. Configurar as Permissões de Hardware
@@ -91,7 +89,7 @@ chmod +x setup.sh
 sudo ./setup.sh
 ```
 
-> Será necessário reiniciar o computador após a execução do `setup.sh`
+> O script `setup.sh` irá configurar as permissões do grupo `input`, aplicar as regras de `udev` para o teclado e baixar automaticamente o pacote de bibliotecas nativas do Piper (`.so` e dados do `espeak-ng`). É recomendado reiniciar o computador após a execução.
 
 ### 4. Baixar o Modelo do Ollama
 
